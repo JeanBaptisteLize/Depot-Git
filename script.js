@@ -129,6 +129,100 @@ window.addEventListener('DOMContentLoaded', () => {
 
         main.appendChild(projSection);
 
+
+    
+    // Contact (formulaire sans backend)
+    const contactSection = document.createElement('section');
+    contactSection.appendChild(el('h3', null, 'Contact'));
+
+    const contactForm = document.createElement('form');
+    contactForm.id = 'contactForm';
+    contactForm.noValidate = true;
+
+    const createField = (labelText, type, id, placeholder) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-field';
+        const label = el('label', null, labelText);
+        label.htmlFor = id;
+        let input;
+        if (type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = 5;
+        } else {
+            input = document.createElement('input');
+            input.type = type;
+        }
+        input.id = id;
+        input.name = id;
+        if (placeholder) input.placeholder = placeholder;
+        const err = el('small', 'error', '');
+        err.id = id + '-error';
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        wrapper.appendChild(err);
+        return { wrapper, input, err };
+    };
+
+    const nameField = createField('Nom', 'text', 'contactName', 'Votre nom');
+    const emailField = createField('Email', 'email', 'contactEmail', 'Votre email');
+    const subjField = createField('Sujet', 'text', 'contactSubject', "Objet (optionnel)");
+    const msgField = createField('Message', 'textarea', 'contactMessage', 'Votre message');
+
+    contactForm.appendChild(nameField.wrapper);
+    contactForm.appendChild(emailField.wrapper);
+    contactForm.appendChild(subjField.wrapper);
+    contactForm.appendChild(msgField.wrapper);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.textContent = 'Envoyer';
+    contactForm.appendChild(submitBtn);
+
+    const formFeedback = el('div', 'form-feedback', '');
+    contactSection.appendChild(contactForm);
+    contactSection.appendChild(formFeedback);
+    main.appendChild(contactSection);
+
+    // Stockage temporaire en mémoire
+    const contactStore = [];
+
+    const validateEmail = (em) => /^\S+@\S+\.\S+$/.test(em);
+
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // reset erreurs
+        nameField.err.textContent = '';
+        emailField.err.textContent = '';
+        msgField.err.textContent = '';
+        formFeedback.textContent = '';
+        formFeedback.className = 'form-feedback';
+
+        const name = nameField.input.value.trim();
+        const email = emailField.input.value.trim();
+        const subject = subjField.input.value.trim();
+        const message = msgField.input.value.trim();
+
+        let valid = true;
+        if (!name) { nameField.err.textContent = 'Veuillez saisir votre nom.'; valid = false; }
+        if (!email) { emailField.err.textContent = 'Veuillez saisir votre email.'; valid = false; }
+        else if (!validateEmail(email)) { emailField.err.textContent = 'Format d\'email invalide.'; valid = false; }
+        if (!message) { msgField.err.textContent = 'Veuillez saisir un message.'; valid = false; }
+
+        if (!valid) {
+            formFeedback.textContent = 'Veuillez corriger les erreurs ci-dessus.';
+            formFeedback.className = 'form-feedback error';
+            return;
+        }
+
+        const entry = { name, email, subject, message, date: new Date().toISOString() };
+        contactStore.push(entry);
+
+        formFeedback.textContent = 'Message envoyé (stocké temporairement). Merci !';
+        formFeedback.className = 'form-feedback success';
+
+        contactForm.reset();
+    });
+
     // Footer
     const footer = document.getElementById('footer');
     if (footer) {
